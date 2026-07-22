@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Blog</title>
+    <title>My Diary</title>
+    <!-- Markdownを綺麗に変換してくれるライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-color: #fcfcfc;
@@ -25,53 +27,78 @@
             max-width: 680px;
             width: 100%;
             margin: 60px 20px;
-            background: var(--card-bg);
-            padding: 50px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            box-sizing: border-box;
         }
         h1 { font-size: 2rem; margin-top: 0; }
-        h2 { font-size: 1.3rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem; margin-top: 2rem; }
-        ul { padding-left: 20px; }
-        li { margin-bottom: 0.8rem; }
-        a { color: var(--accent-color); text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        .date { font-size: 0.85rem; color: #95a5a6; margin-right: 10px; }
+        .site-desc { color: #7f8c8d; margin-bottom: 2rem; }
+        
+        /* 記事ごとのカード（縦に積み重なる） */
+        .entry {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+        .entry-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .date { font-size: 0.85rem; color: #95a5a6; margin-bottom: 5px; }
+        .entry-title { font-size: 1.4rem; margin: 0; color: var(--text-color); }
+        
+        .entry-body p { margin: 0 0 1rem 0; }
+        .entry-body ul { padding-left: 20px; margin: 0 0 1rem 0; }
+        .entry-body li { margin-bottom: 0.3rem; }
+        
+        pre { background: #f8f9fa; padding: 15px; border-radius: 6px; overflow-x: auto; border: 1px solid var(--border-color); }
+        code { background: #f1f2f6; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        pre code { background: none; padding: 0; }
+
+        @media (max-width: 600px) {
+            .container { margin: 20px 10px; }
+            .entry { padding: 25px 20px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>My Blog</h1>
-        <p>日々の記録やメモを残す場所です。</p>
+        <h1>My Diary</h1>
+        <p class="site-desc">日々の記録やメモをここに書き留めていきます。</p>
 
-        <h2>記事一覧</h2>
-        <ul id="article-list">
-            <li>読み込み中...</li>
-        </ul>
+        <!-- すべての日記がここに縦に自動で並びます -->
+        <div id="entries-container">読み込み中...</div>
     </div>
 
     <script>
         fetch('posts.json')
             .then(response => response.json())
             .then(posts => {
-                const listContainer = document.getElementById('article-list');
-                listContainer.innerHTML = '';
+                const container = document.getElementById('entries-container');
+                container.innerHTML = '';
+                
                 if (posts.length === 0) {
-                    listContainer.innerHTML = '<li>まだ記事がありません。</li>';
+                    container.innerHTML = '<p>まだ記事がありません。</p>';
                     return;
                 }
+
                 posts.forEach(post => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `
-                        <span class="date">${post.date}</span>
-                        <a href="post.html?p=${post.id}">${post.title}</a>
+                    const div = document.createElement('div');
+                    div.className = 'entry';
+                    div.innerHTML = `
+                        <div class="entry-header">
+                            <div class="date">${post.date}</div>
+                            <h2 class="entry-title">${post.title}</h2>
+                        </div>
+                        <div class="entry-body">${marked.parse(post.body)}</div>
                     `;
-                    listContainer.appendChild(li);
+                    container.appendChild(div);
                 });
             })
             .catch(error => {
-                document.getElementById('article-list').innerHTML = '<li>記事一覧の読み込みに失敗しました。</li>';
+                document.getElementById('entries-container').innerHTML = '<p>読み込みに失敗しました。</p>';
             });
     </script>
 </body>
